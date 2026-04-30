@@ -141,3 +141,12 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Data directory
+data/
+
+# Superpowers brainstorm
+.superpowers/
+
+# Local data
+data/
