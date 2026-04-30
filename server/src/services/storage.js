@@ -56,3 +56,18 @@ export async function deleteItem(filename, id) {
   await writeJson(filename, filtered);
   return true;
 }
+
+export async function readSettings() {
+  try {
+    const content = await fs.readFile(filePath('settings.json'), 'utf-8');
+    return JSON.parse(content);
+  } catch {
+    return { xshellPath: '', defaultUploadDir: '', defaultDownloadDir: '' };
+  }
+}
+
+export async function writeSettings(data) {
+  await ensureDataDir();
+  await fs.writeFile(filePath('settings.json'), JSON.stringify(data, null, 2), 'utf-8');
+  return data;
+}
