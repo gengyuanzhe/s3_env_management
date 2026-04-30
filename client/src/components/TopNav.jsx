@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, SettingOutlined } from '@ant-design/icons';
 import AddEnvModal from './modals/AddEnvModal';
+import SettingsModal from './modals/SettingsModal';
 
 export default function TopNav() {
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   return (
     <>
@@ -25,19 +27,27 @@ export default function TopNav() {
           }}>S3</div>
           <div>
             <div style={{ color: '#fff', fontWeight: 600, fontSize: 15 }}>S3 EnvOps</div>
-            <div style={{ color: '#64748b', fontSize: 9, letterSpacing: 0.5 }}>环境运维平台</div>
+            <div style={{ color: '#64748b', fontSize: 9, letterSpacing: 0.5 }}>Environment Operations Platform</div>
           </div>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setAddModalOpen(true)}
-          style={{ borderRadius: 20, background: 'linear-gradient(135deg, #00d2ff, #3a7bd5)', border: 'none' }}
-        >
-          添加环境
-        </Button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <Button
+            icon={<SettingOutlined />}
+            onClick={() => setSettingsModalOpen(true)}
+            style={{ borderRadius: 20, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setAddModalOpen(true)}
+            style={{ borderRadius: 20, background: 'linear-gradient(135deg, #00d2ff, #3a7bd5)', border: 'none' }}
+          >
+            Add Environment
+          </Button>
+        </div>
       </div>
       <AddEnvModal open={addModalOpen} onClose={() => setAddModalOpen(false)} />
+      <SettingsModal open={settingsModalOpen} onClose={() => setSettingsModalOpen(false)} />
     </>
   );
 }
