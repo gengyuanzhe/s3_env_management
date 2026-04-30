@@ -9,6 +9,10 @@ function filePath(filename) {
   return path.join(DATA_DIR, filename);
 }
 
+async function ensureDataDir() {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+}
+
 export async function readJson(filename) {
   try {
     const content = await fs.readFile(filePath(filename), 'utf-8');
@@ -19,6 +23,7 @@ export async function readJson(filename) {
 }
 
 export async function writeJson(filename, data) {
+  await ensureDataDir();
   await fs.writeFile(filePath(filename), JSON.stringify(data, null, 2), 'utf-8');
   return data;
 }
