@@ -133,3 +133,50 @@ export async function downloadObject(envId, bucket, key) {
   const res = await request(`/s3/${envId}/download?bucket=${encodeURIComponent(bucket)}&key=${encodeURIComponent(key)}`);
   return res;
 }
+
+// Settings
+export async function getSettings() {
+  const res = await request('/settings');
+  return res.json();
+}
+
+export async function updateSettings(data) {
+  const res = await request('/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+// SSH
+export async function launchSsh({ externalIp, credentials }) {
+  const res = await request('/ssh/launch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ externalIp, credentials }),
+  });
+  return res.json();
+}
+
+// Files
+export async function listLocalFiles(dir) {
+  const res = await request(`/files/list?dir=${encodeURIComponent(dir)}`);
+  return res.json();
+}
+
+// Upload from local path
+export async function uploadFromLocal(envId, { bucket, key, localFilePath, mode, partSize }) {
+  const res = await request(`/s3/${envId}/upload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bucket, key, localFilePath, mode: mode || 'normal', partSize: partSize || '5' }),
+  });
+  return res.json();
+}
+
+// Download to local dir
+export async function downloadToLocal(envId, bucket, key, saveToDir) {
+  const res = await request(`/s3/${envId}/download?bucket=${encodeURIComponent(bucket)}&key=${encodeURIComponent(key)}&saveToDir=${encodeURIComponent(saveToDir)}`);
+  return res.json();
+}
