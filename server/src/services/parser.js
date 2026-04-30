@@ -15,6 +15,8 @@ export function parseEnvironmentText(text) {
     account: '',
     password: '',
     sdeName: '',
+    uploadDir: '',
+    downloadDir: '',
     nodes: [],
     s3Config: { endpoint: '', ak: '', sk: '' },
     createdAt: new Date().toISOString(),
@@ -27,10 +29,17 @@ export function parseEnvironmentText(text) {
     return m ? m[1].trim() : null;
   }
 
+  let inNodeZone = false;
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('---')) continue;
 
+    // Detect section markers
+    if (/^节点\s*:?\s*$/.test(trimmed)) { inNodeZone = true; continue; }
+    if (/^S3配置\s*:?\s*$/.test(trimmed)) { inNodeZone = false; }
+
+    // Key-value fields
     let v;
     if ((v = match(line, /^环境名称\s*:?\s*(.+)/))) { env.name = v; continue; }
     if ((v = match(line, /^环境ID\s*:?\s*(.+)/))) { env.envId = v; continue; }
@@ -46,19 +55,21 @@ export function parseEnvironmentText(text) {
     if ((v = match(line, /^Endpoint\s*:?\s*(.+)/))) { env.s3Config.endpoint = v; continue; }
     if ((v = match(line, /^AK\s*:?\s*(.+)/))) { env.s3Config.ak = v; continue; }
     if ((v = match(line, /^SK\s*:?\s*(.+)/))) { env.s3Config.sk = v; continue; }
-  }
 
-  // Parse nodes: indented lines "NAME INTERNAL_IP EXTERNAL_IP USER/PWD"
-  const nodePattern = /^\s+(\S+)\s+(\d+\.\d+\.\d+\.\d+)\s+(\d+\.\d+\.\d+\.\d+)\s+(\S+\/\S+)/;
-  for (const line of lines) {
-    const m = line.match(nodePattern);
-    if (m) {
-      env.nodes.push({
-        name: m[1],
-        internalIp: m[2],
-        externalIp: m[3],
-        credentials: m[4],
-      });
+    // Node parsing: support both indented and non-indented, with or without password
+    if (inNodeZone) {
+      const nodeWithCreds = trimmed.match(/^(\S+)\s+(\d+\.\d+\.\d+\.\d+)\s+(\d+\.\d+\.\d+\.\d+)\s+(\S+\/\S+)/);
+      const nodeNoPass = trimmed.match(/^(\S+)\s+(\d+\.\d+\.\d+\.\d+)\s+(\d+\.\d+\.\d+\.\d+)\s+(\S+)/);
+      const m = nodeWithCreds || nodeNoPass;
+      if (m) {
+        env.nodes.push({
+          name: m[1],
+          internalIp: m[2],
+          externalIp: m[3],
+          credentials: m[4],
+        });
+        continue;
+      }
     }
   }
 
