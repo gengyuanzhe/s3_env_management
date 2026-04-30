@@ -21,7 +21,7 @@ client/                 # React前端 (Vite dev server, port 5173)
     context/            # React Context全局状态 (AppContext, logReducer)
     services/           # API调用层 (api.js)
     utils/              # 工具函数 (format.js)
-server/                 # Express后端 (port 3000)
+server/                 # Express后端 (port 34567)
   src/
     routes/             # API路由 (environments, commands, s3)
     services/           # 业务逻辑 (parser, storage, s3Client)
@@ -32,12 +32,12 @@ data/                   # JSON数据存储 (gitignored)
 
 ```bash
 npm run dev          # 同时启动前后端
-npm run dev:server   # 仅启动后端 (localhost:3000)
+npm run dev:server   # 仅启动后端 (localhost:34567)
 npm run dev:client   # 仅启动前端 (localhost:5173)
 npm run build        # 构建前端生产版本
 ```
 
-Vite配置了proxy，前端 `/api/*` 请求自动代理到后端 `localhost:3000`。
+Vite配置了proxy，前端 `/api/*` 请求自动代理到后端 `localhost:34567`。
 
 ## API路由
 
