@@ -37,7 +37,7 @@ export function parseEnvironmentText(text) {
 
     // Detect section markers
     if (/^节点\s*:?\s*$/.test(trimmed)) { inNodeZone = true; continue; }
-    if (/^S3配置\s*:?\s*$/.test(trimmed)) { inNodeZone = false; }
+    if (/^S3配置\s*:?\s*$/.test(trimmed)) { inNodeZone = false; continue; }
 
     // Key-value fields
     let v;
