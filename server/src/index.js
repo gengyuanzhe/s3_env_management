@@ -6,6 +6,7 @@ import commandsRouter from './routes/commands.js';
 import s3Router from './routes/s3.js';
 import settingsRouter from './routes/settings.js';
 import sshRouter from './routes/ssh.js';
+import filesRouter from './routes/files.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/commands', commandsRouter);
 app.use('/api/s3', s3Router);
 app.use('/api/settings', settingsRouter);
 app.use('/api/ssh', sshRouter);
+app.use('/api/files', filesRouter);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
