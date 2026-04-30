@@ -13,6 +13,8 @@ import {
   CompleteMultipartUploadCommand,
 } from '@aws-sdk/client-s3';
 import { getS3Client } from '../services/s3Client.js';
+import { writeFile, mkdir, readFile as readFileFs } from 'fs/promises';
+import path from 'path';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -62,19 +64,30 @@ router.get('/:envId/buckets/:bucket/objects', async (req, res) => {
 
 router.post('/:envId/upload', upload.single('file'), async (req, res) => {
   try {
-    const { bucket, key, mode, partSize } = req.body;
-    const file = req.file;
-    if (!file || !bucket || !key) return res.status(400).json({ error: 'bucket, key, file required' });
+    const { bucket, key, mode, partSize, localFilePath } = req.body;
+    if (!bucket || !key) return res.status(400).json({ error: 'bucket and key required' });
 
     const client = await getS3Client(req.params.envId);
 
-    if (mode === 'multipart' && file.size > 5 * 1024 * 1024) {
+    let buffer;
+    let fileSize;
+    if (localFilePath) {
+      buffer = await readFileFs(localFilePath);
+      fileSize = buffer.length;
+    } else {
+      const file = req.file;
+      if (!file) return res.status(400).json({ error: 'file or localFilePath required' });
+      buffer = file.buffer;
+      fileSize = file.size;
+    }
+
+    if (mode === 'multipart' && fileSize > 5 * 1024 * 1024) {
       const partBytes = (parseInt(partSize) || 5) * 1024 * 1024;
       const mpu = await client.send(new CreateMultipartUploadCommand({ Bucket: bucket, Key: key }));
       const parts = [];
       let partNum = 1;
-      for (let offset = 0; offset < file.buffer.length; offset += partBytes) {
-        const chunk = file.buffer.slice(offset, Math.min(offset + partBytes, file.buffer.length));
+      for (let offset = 0; offset < buffer.length; offset += partBytes) {
+        const chunk = buffer.slice(offset, Math.min(offset + partBytes, buffer.length));
         const result = await client.send(new UploadPartCommand({
           Bucket: bucket, Key: key, UploadId: mpu.UploadId,
           PartNumber: partNum, Body: chunk,
@@ -87,10 +100,10 @@ router.post('/:envId/upload', upload.single('file'), async (req, res) => {
         MultipartUpload: { Parts: parts },
       }));
     } else {
-      await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: file.buffer }));
+      await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: buffer }));
     }
 
-    res.json({ success: true, key, size: file.size });
+    res.json({ success: true, key, size: fileSize });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -98,20 +111,27 @@ router.post('/:envId/upload', upload.single('file'), async (req, res) => {
 
 router.get('/:envId/download', async (req, res) => {
   try {
-    const { bucket, key } = req.query;
+    const { bucket, key, saveToDir } = req.query;
     if (!bucket || !key) return res.status(400).json({ error: 'bucket and key required' });
 
     const client = await getS3Client(req.params.envId);
     const result = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
 
+    if (saveToDir) {
+      const chunks = [];
+      for await (const chunk of result.Body) { chunks.push(chunk); }
+      const buffer = Buffer.concat(chunks);
+      const filename = key.split('/').pop();
+      await mkdir(saveToDir, { recursive: true });
+      await writeFile(path.join(saveToDir, filename), buffer);
+      return res.json({ success: true, savedPath: path.join(saveToDir, filename) });
+    }
+
     const filename = key.split('/').pop();
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
     res.setHeader('Content-Type', result.ContentType || 'application/octet-stream');
     if (result.ContentLength) res.setHeader('Content-Length', result.ContentLength);
-
-    for await (const chunk of result.Body) {
-      res.write(chunk);
-    }
+    for await (const chunk of result.Body) { res.write(chunk); }
     res.end();
   } catch (err) {
     res.status(500).json({ error: err.message });
