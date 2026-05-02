@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
-import { Tag, Button } from 'antd';
-import { EditOutlined, LinkOutlined } from '@ant-design/icons';
+import { Tag, Button, Popconfirm, message } from 'antd';
+import { EditOutlined, LinkOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useApp } from '../context/AppContext';
+import { deleteEnvironment, getEnvironments } from '../services/api';
 import NodeCard from './NodeCard';
 import S3ConfigView from './S3ConfigView';
 import EditEnvModal from './modals/EditEnvModal';
 
 export default function EnvDetailView({ envId }) {
-  const { environments } = useApp();
+  const { environments, setEnvironments, setActiveView, addLog } = useApp();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const env = environments.find(e => e.id === envId);
   if (!env) return <div>Environment not found</div>;
+
+  const handleDelete = async () => {
+    try {
+      await deleteEnvironment(env.id);
+      addLog('SUCCESS', 'Delete Env', env.name);
+      setEnvironments(await getEnvironments());
+      setActiveView({ type: 'empty' });
+      message.success('Environment deleted');
+    } catch (err) {
+      addLog('FAILED', 'Delete Env', err.message);
+      message.error(err.message);
+    }
+  };
 
   return (
     <div>
@@ -32,6 +46,9 @@ export default function EnvDetailView({ envId }) {
             </Button>
           )}
           <Button icon={<EditOutlined />} onClick={() => setEditModalOpen(true)}>Edit</Button>
+          <Popconfirm title="Delete this environment?" onConfirm={handleDelete}>
+            <Button danger icon={<DeleteOutlined />}>Delete</Button>
+          </Popconfirm>
         </div>
       </div>
 
