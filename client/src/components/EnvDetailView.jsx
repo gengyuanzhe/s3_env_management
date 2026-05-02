@@ -10,7 +10,7 @@ export default function EnvDetailView({ envId }) {
   const { environments } = useApp();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const env = environments.find(e => e.id === envId);
-  if (!env) return <div>环境不存在</div>;
+  if (!env) return <div>Environment not found</div>;
 
   return (
     <div>
@@ -28,18 +28,18 @@ export default function EnvDetailView({ envId }) {
           {env.managementUrl && (
             <Button type="primary" icon={<LinkOutlined />} href={env.managementUrl} target="_blank"
               style={{ background: 'linear-gradient(135deg, #3a7bd5, #00d2ff)', border: 'none', borderRadius: 10 }}>
-              管理界面
+              Management
             </Button>
           )}
-          <Button icon={<EditOutlined />} onClick={() => setEditModalOpen(true)}>编辑</Button>
+          <Button icon={<EditOutlined />} onClick={() => setEditModalOpen(true)}>Edit</Button>
         </div>
       </div>
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
           <div style={{ width: 3, height: 16, background: 'linear-gradient(180deg, #3a7bd5, #00d2ff)', borderRadius: 2 }} />
-          <span style={{ fontWeight: 600, color: '#1a1a2e', fontSize: 13 }}>节点信息</span>
-          <Tag style={{ marginLeft: 4 }}>{env.nodes?.length || 0} 节点</Tag>
+          <span style={{ fontWeight: 600, color: '#1a1a2e', fontSize: 13 }}>Node Info</span>
+          <Tag style={{ marginLeft: 4 }}>{env.nodes?.length || 0} Nodes</Tag>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {(env.nodes || []).map((node, i) => <NodeCard key={node.name + i} node={node} />)}

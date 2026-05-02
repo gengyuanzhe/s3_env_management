@@ -17,7 +17,7 @@ export default function Sidebar() {
       const envs = await getEnvironments();
       setEnvironments(envs);
     } catch (err) {
-      addLog('FAILED', '加载环境', err.message);
+      addLog('FAILED', 'Load Envs', err.message);
     }
   }
 
@@ -26,9 +26,9 @@ export default function Sidebar() {
     try {
       const result = await listBuckets(envId);
       setBuckets(prev => ({ ...prev, [envId]: result }));
-      addLog('SUCCESS', '列举桶', `返回 ${result.length} 个桶`);
+      addLog('SUCCESS', 'List Buckets', `${result.length} buckets`);
     } catch (err) {
-      addLog('FAILED', '列举桶', err.message);
+      addLog('FAILED', 'List Buckets', err.message);
     }
     setLoading(false);
   }
@@ -49,7 +49,7 @@ export default function Sidebar() {
           <div style={{ fontWeight: 600, fontSize: 12, color: '#1a1a2e' }}>{env.name}</div>
           <div style={{ display: 'flex', gap: 3, marginTop: 2 }}>
             {env.cpuArch && <span style={{ background: 'rgba(59,130,246,0.12)', color: '#3a7bd5', padding: '0 5px', borderRadius: 4, fontSize: 8 }}>{env.cpuArch}</span>}
-            <span style={{ background: 'rgba(34,197,94,0.12)', color: '#2e7d32', padding: '0 5px', borderRadius: 4, fontSize: 8 }}>{env.nodes?.length || 0}节点</span>
+            <span style={{ background: 'rgba(34,197,94,0.12)', color: '#2e7d32', padding: '0 5px', borderRadius: 4, fontSize: 8 }}>{env.nodes?.length || 0} Nodes</span>
           </div>
         </div>
       ),
@@ -63,11 +63,11 @@ export default function Sidebar() {
               color: '#3a7bd5', marginBottom: 4,
             }}
           >
-            环境信息
+            Env Info
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px 2px' }}>
-            <span style={{ fontSize: 9, color: '#8c939d', fontWeight: 600, textTransform: 'uppercase' }}>S3 桶</span>
+            <span style={{ fontSize: 9, color: '#8c939d', fontWeight: 600, textTransform: 'uppercase' }}>S3 Buckets</span>
             <div style={{ display: 'flex', gap: 4 }}>
               <ReloadOutlined style={{ fontSize: 10, color: '#3a7bd5', cursor: 'pointer' }} onClick={() => loadBuckets(env.id)} />
               <PlusOutlined style={{ fontSize: 10, color: '#3a7bd5', cursor: 'pointer' }} onClick={() => setCreateBucketEnvId(env.id)} />
@@ -75,7 +75,7 @@ export default function Sidebar() {
           </div>
 
           {loading && !buckets[env.id] ? <Spin size="small" /> : (
-            bucketList.length === 0 ? <div style={{ padding: '2px 10px', fontSize: 10, color: '#8c939d' }}>暂无桶</div> :
+            bucketList.length === 0 ? <div style={{ padding: '2px 10px', fontSize: 10, color: '#8c939d' }}>No buckets</div> :
             bucketList.map(b => (
               <div
                 key={b.Name}
@@ -99,7 +99,7 @@ export default function Sidebar() {
     <div style={{ width: 260, background: '#fff', borderRight: '1px solid #e8ecf1', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
         {environments.length === 0 ? (
-          <Empty description="暂无环境" style={{ marginTop: 40 }} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          <Empty description="No environments" style={{ marginTop: 40 }} image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : (
           <Collapse ghost expandIconPosition="end" items={envItems} onChange={handleEnvExpand} />
         )}
@@ -113,7 +113,7 @@ export default function Sidebar() {
             color: activeView.type === 'commands' ? '#3a7bd5' : '#5a6377',
           }}
         >
-          快捷命令
+          Quick Commands
         </div>
       </div>
       {createBucketEnvId && (

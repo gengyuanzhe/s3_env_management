@@ -13,21 +13,21 @@ export default function CreateBucketModal({ envId, onClose }) {
     setLoading(true);
     try {
       await createBucket(envId, name);
-      addLog('SUCCESS', '创建桶', name);
+      addLog('SUCCESS', 'Create Bucket', name);
       const result = await listBuckets(envId);
       setBuckets(prev => ({ ...prev, [envId]: result }));
-      message.success('创建成功');
+      message.success('Created');
       onClose();
     } catch (err) {
-      addLog('FAILED', '创建桶', err.message);
+      addLog('FAILED', 'Create Bucket', err.message);
       message.error(err.message);
     }
     setLoading(false);
   };
 
   return (
-    <Modal title="创建桶" open={!!envId} onCancel={onClose} onOk={handleCreate} confirmLoading={loading} okText="创建">
-      <Input placeholder="桶名称" value={name} onChange={(e) => setName(e.target.value)} />
+    <Modal title="Create Bucket" open={!!envId} onCancel={onClose} onOk={handleCreate} confirmLoading={loading} okText="Create">
+      <Input placeholder="Bucket Name" value={name} onChange={(e) => setName(e.target.value)} />
     </Modal>
   );
 }

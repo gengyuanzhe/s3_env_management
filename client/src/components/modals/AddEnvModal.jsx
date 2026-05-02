@@ -13,23 +13,23 @@ export default function AddEnvModal({ open, onClose }) {
     setLoading(true);
     try {
       const result = await parseAndAddEnvironment(text);
-      addLog('SUCCESS', '环境解析', `成功添加: ${result.data.name}`);
+      addLog('SUCCESS', 'Parse Env', `Added: ${result.data.name}`);
       setEnvironments(await getEnvironments());
-      message.success('环境添加成功');
+      message.success('Environment added');
       setText('');
       onClose();
     } catch (err) {
-      addLog('FAILED', '环境解析', err.message);
+      addLog('FAILED', 'Parse Env', err.message);
       message.error(err.message);
     }
     setLoading(false);
   };
 
   return (
-    <Modal title="导入环境配置" open={open} onCancel={onClose} onOk={handleImport} confirmLoading={loading} okText="确认导入" width={640}>
+    <Modal title="Import Environment Config" open={open} onCancel={onClose} onOk={handleImport} confirmLoading={loading} okText="Import" width={640}>
       <Input.TextArea
         value={text} onChange={(e) => setText(e.target.value)}
-        rows={15} placeholder="粘贴环境信息文本..."
+        rows={15} placeholder="Paste environment info text..."
         style={{ fontFamily: 'monospace', fontSize: 12 }}
       />
     </Modal>
