@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, message, Popconfirm } from 'antd';
-import { ReloadOutlined, UploadOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined, UploadOutlined, DeleteOutlined, DownloadOutlined, CloudDownloadOutlined } from '@ant-design/icons';
 import { useApp } from '../context/AppContext';
 import { listObjects, deleteObject } from '../services/api';
 import { formatBytes, formatDate } from '../utils/format';
@@ -67,6 +67,9 @@ export default function BucketObjectsView({ envId, bucket }) {
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <Button icon={<ReloadOutlined />} onClick={loadObjects} loading={loading}>Refresh</Button>
+          <Button icon={<CloudDownloadOutlined />} onClick={() => setDownloadTarget({ key: '', size: 0 })}>
+            Download by Key
+          </Button>
           <Button type="primary" icon={<UploadOutlined />} onClick={() => setUploadModalOpen(true)}
             style={{ background: 'linear-gradient(135deg, #2e7d32, #4caf50)', border: 'none', borderRadius: 6 }}>
             Upload Object

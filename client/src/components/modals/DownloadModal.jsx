@@ -6,13 +6,17 @@ import { formatBytes } from '../../utils/format';
 
 export default function DownloadModal({ open, envId, bucket, target, onClose }) {
   const { addLog } = useApp();
-  const [filename, setFilename] = useState(target?.key?.split('/').pop() || '');
+  const isManualKey = !target?.key;
+  const [manualKey, setManualKey] = useState('');
+  const key = isManualKey ? manualKey : target.key;
+  const [filename, setFilename] = useState(!isManualKey ? (target?.key?.split('/').pop() || '') : '');
   const [loading, setLoading] = useState(false);
   const [downloadDir, setDownloadDir] = useState('');
 
   useEffect(() => {
     if (open && envId) {
-      setFilename(target?.key?.split('/').pop() || '');
+      setManualKey('');
+      setFilename(!isManualKey ? (target?.key?.split('/').pop() || '') : '');
       determineDownloadDir();
     }
   }, [open, envId]);
@@ -29,27 +33,29 @@ export default function DownloadModal({ open, envId, bucket, target, onClose }) 
   }
 
   const handleDownload = async () => {
+    if (!key) return message.warning('Please enter an object key');
     setLoading(true);
     try {
       if (downloadDir) {
-        const result = await downloadToLocal(envId, bucket, target.key, downloadDir);
+        const result = await downloadToLocal(envId, bucket, key, downloadDir);
         addLog('SUCCESS', 'S3 Download', `Saved to ${result.savedPath}`);
         message.success(`Saved to ${result.savedPath}`);
       } else {
-        const res = await downloadObject(envId, bucket, target.key);
+        const res = await downloadObject(envId, bucket, key);
         const blob = await res.blob();
+        const saveName = filename || key.split('/').pop();
         if (window.showSaveFilePicker) {
-          const handle = await window.showSaveFilePicker({ suggestedName: filename });
+          const handle = await window.showSaveFilePicker({ suggestedName: saveName });
           const writable = await handle.createWritable();
           await writable.write(blob);
           await writable.close();
         } else {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
-          a.href = url; a.download = filename; a.click();
+          a.href = url; a.download = saveName; a.click();
           URL.revokeObjectURL(url);
         }
-        addLog('SUCCESS', 'S3 Download', `${bucket}/${target.key}`);
+        addLog('SUCCESS', 'S3 Download', `${bucket}/${key}`);
         message.success('Download complete');
       }
       onClose();
@@ -62,21 +68,31 @@ export default function DownloadModal({ open, envId, bucket, target, onClose }) 
 
   return (
     <Modal title="Download Object" open={open} onCancel={onClose} onOk={handleDownload} confirmLoading={loading} okText="Download" width={420}>
-      <div style={{ background: '#f8f9fb', borderRadius: 8, padding: 12, marginBottom: 12 }}>
-        <div style={{ fontSize: 9, color: '#8c939d' }}>S3 Path</div>
-        <div style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace', wordBreak: 'break-all' }}>{bucket} / {target?.key}</div>
-        <div style={{ fontSize: 9, color: '#8c939d', marginTop: 4 }}>Size: {formatBytes(target?.size)}</div>
-      </div>
+      {isManualKey ? (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: '#8c939d', marginBottom: 4 }}>Object Key</div>
+          <Input value={manualKey} onChange={(e) => setManualKey(e.target.value)} placeholder="e.g. path/to/file.txt" style={{ fontFamily: 'monospace' }} />
+          <div style={{ fontSize: 9, color: '#8c939d', marginTop: 4 }}>Bucket: {bucket}</div>
+        </div>
+      ) : (
+        <div style={{ background: '#f8f9fb', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+          <div style={{ fontSize: 9, color: '#8c939d' }}>S3 Path</div>
+          <div style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace', wordBreak: 'break-all' }}>{bucket} / {target?.key}</div>
+          <div style={{ fontSize: 9, color: '#8c939d', marginTop: 4 }}>Size: {formatBytes(target?.size)}</div>
+        </div>
+      )}
       {downloadDir ? (
         <div style={{ background: '#eef5ff', borderRadius: 8, padding: 12 }}>
           <div style={{ fontSize: 9, color: '#8c939d' }}>Save To</div>
-          <div style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace' }}>{downloadDir}/{filename}</div>
+          <div style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace' }}>{downloadDir}/{filename || (isManualKey ? '(key basename)' : '')}</div>
         </div>
       ) : (
-        <div>
-          <div style={{ fontSize: 10, color: '#8c939d', marginBottom: 4 }}>Filename</div>
-          <Input value={filename} onChange={(e) => setFilename(e.target.value)} />
-        </div>
+        !isManualKey && (
+          <div>
+            <div style={{ fontSize: 10, color: '#8c939d', marginBottom: 4 }}>Filename</div>
+            <Input value={filename} onChange={(e) => setFilename(e.target.value)} />
+          </div>
+        )
       )}
     </Modal>
   );
