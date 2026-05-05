@@ -150,3 +150,6 @@ data/
 
 # Local data
 data/
+
+.idea
+.DS_Store
