@@ -12,12 +12,25 @@ export async function getS3Client(envId) {
   const { endpoint, ak, sk } = env.s3Config;
   if (!endpoint || !ak || !sk) throw new Error('S3 config incomplete: missing endpoint, ak, or sk');
 
-  const client = new S3Client({
-    endpoint,
-    region: 'us-east-1',
+  const isAWS = /s3[\.\-][\w-]+\.amazonaws\.com/.test(endpoint);
+  const regionMatch = endpoint.match(/s3[\.\-]([\w-]+)\.amazonaws\.com/);
+  const region = regionMatch ? regionMatch[1] : 'us-east-1';
+
+  const config = {
+    region,
     credentials: { accessKeyId: ak, secretAccessKey: sk },
-    forcePathStyle: true,
-  });
+  };
+
+  if (isAWS) {
+    // AWS S3: extract region from endpoint, use virtual-hosted-style
+    config.region = region;
+  } else {
+    // S3-compatible (MinIO, etc.): use path-style with explicit endpoint
+    config.endpoint = endpoint;
+    config.forcePathStyle = true;
+  }
+
+  const client = new S3Client(config);
 
   clientCache.set(envId, client);
   return client;
