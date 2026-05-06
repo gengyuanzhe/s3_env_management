@@ -72,7 +72,7 @@ export default function EnvDetailView({ envId }) {
           <Tag style={{ marginLeft: 4 }}>{env.nodes?.length || 0} Nodes</Tag>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {(env.nodes || []).map((node, i) => <NodeCard key={node.name + i} node={node} />)}
+          {(env.nodes || []).map((node, i) => <NodeCard key={node.name + i} node={node} env={env} />)}
         </div>
       </div>
 

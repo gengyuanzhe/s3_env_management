@@ -1,7 +1,9 @@
 import React from 'react';
-import { Tag, Button, message } from 'antd';
-import { CodeOutlined } from '@ant-design/icons';
+import { Tag, Button, Dropdown, message } from 'antd';
+import { CodeOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { launchSsh } from '../services/api';
+import { useApp } from '../context/AppContext';
+import { resolveCommand } from '../utils/format';
 
 function getNodeRole(name) {
   if (name.startsWith('FSM')) return { label: 'Master', color: 'blue' };
@@ -10,8 +12,9 @@ function getNodeRole(name) {
   return { label: 'Node', color: 'default' };
 }
 
-export default function NodeCard({ node }) {
+export default function NodeCard({ node, env }) {
   const role = getNodeRole(node.name);
+  const { commands } = useApp();
 
   const handleXshell = async () => {
     try {
@@ -21,6 +24,24 @@ export default function NodeCard({ node }) {
       message.error(err.message);
     }
   };
+
+  const handleCommandSelect = (cmd) => {
+    const resolved = resolveCommand(cmd.template, node, env?.customVariables);
+    navigator.clipboard.writeText(resolved).then(() => {
+      const preview = resolved.length > 50 ? resolved.substring(0, 50) + '...' : resolved;
+      message.success(`Copied: ${preview}`);
+    }).catch(() => {
+      message.error('Failed to copy');
+    });
+  };
+
+  const commandMenuItems = commands.length === 0
+    ? [{ key: 'empty', label: 'No commands', disabled: true }]
+    : commands.map((cmd) => ({
+        key: cmd.id,
+        label: cmd.name,
+        onClick: () => handleCommandSelect(cmd),
+      }));
 
   return (
     <div style={{
@@ -37,14 +58,25 @@ export default function NodeCard({ node }) {
       <div style={{ fontSize: 10, color: '#5a6377', marginBottom: 10 }}>
         Credentials: <span style={{ fontFamily: 'monospace' }}>{node.credentials}</span>
       </div>
-      <Button
-        size="small"
-        icon={<CodeOutlined />}
-        onClick={handleXshell}
-        style={{ background: 'linear-gradient(135deg, #1a1a2e, #16213e)', color: '#fff', border: 'none', borderRadius: 6 }}
-      >
-        Xshell
-      </Button>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <Dropdown menu={{ items: commandMenuItems }} trigger={['click']}>
+          <Button
+            size="small"
+            icon={<ThunderboltOutlined />}
+            style={{ background: 'linear-gradient(135deg, #3a7bd5, #00d2ff)', color: '#fff', border: 'none', borderRadius: 6 }}
+          >
+            Command
+          </Button>
+        </Dropdown>
+        <Button
+          size="small"
+          icon={<CodeOutlined />}
+          onClick={handleXshell}
+          style={{ background: 'linear-gradient(135deg, #1a1a2e, #16213e)', color: '#fff', border: 'none', borderRadius: 6 }}
+        >
+          Xshell
+        </Button>
+      </div>
     </div>
   );
 }
