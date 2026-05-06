@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tag, Button, Popconfirm, message, Input, Empty } from 'antd';
 import { EditOutlined, LinkOutlined, DeleteOutlined, PlusOutlined, DeleteFilled } from '@ant-design/icons';
 import { useApp } from '../context/AppContext';
@@ -12,6 +12,7 @@ export default function EnvDetailView({ envId }) {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const env = environments.find(e => e.id === envId);
   const [customVariables, setCustomVariables] = useState(env?.customVariables || []);
+  useEffect(() => { setCustomVariables(env?.customVariables || []); }, [envId]);
   if (!env) return <div>Environment not found</div>;
 
   const handleDelete = async () => {
