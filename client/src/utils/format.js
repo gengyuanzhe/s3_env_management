@@ -27,7 +27,7 @@ export function resolveCommand(template, node, customVariables = []) {
     }
   }
   for (const { key, value } of customVariables) {
-    if (key && value) {
+    if (key && value != null) {
       result = result.replaceAll(`{${key}}`, value);
     }
   }

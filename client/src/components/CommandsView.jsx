@@ -45,7 +45,7 @@ export default function CommandsView() {
   const columns = [
     { title: 'Name', dataIndex: 'name', key: 'name', width: 120 },
     {
-      title: 'Command Template',
+      title: selectedNode ? 'Resolved Command' : 'Command Template',
       dataIndex: 'template',
       key: 'template',
       render: (t) => {

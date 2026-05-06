@@ -30,11 +30,12 @@ export default function EnvDetailView({ envId }) {
 
   const handleSaveCustomVariables = async (newVars) => {
     try {
-      setCustomVariables(newVars);
       await updateEnvironment(env.id, { ...env, customVariables: newVars });
       const updated = await getEnvironments();
       setEnvironments(updated);
+      setCustomVariables(newVars);
     } catch (err) {
+      setCustomVariables(env.customVariables || []);
       message.error(err.message);
     }
   };
@@ -124,7 +125,7 @@ export default function EnvDetailView({ envId }) {
               </div>
             ))}
             <Button type="dashed" size="small" icon={<PlusOutlined />}
-              onClick={() => setCustomVariables([...customVariables, { key: '', value: '' }])}>
+              onClick={() => handleSaveCustomVariables([...customVariables, { key: '', value: '' }])}>
               Add Variable
             </Button>
           </div>
