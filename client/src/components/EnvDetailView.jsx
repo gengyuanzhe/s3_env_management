@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Tag, Button, Popconfirm, message } from 'antd';
-import { EditOutlined, LinkOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Tag, Button, Popconfirm, message, Input, Empty } from 'antd';
+import { EditOutlined, LinkOutlined, DeleteOutlined, PlusOutlined, DeleteFilled } from '@ant-design/icons';
 import { useApp } from '../context/AppContext';
-import { deleteEnvironment, getEnvironments } from '../services/api';
+import { deleteEnvironment, getEnvironments, updateEnvironment } from '../services/api';
 import NodeCard from './NodeCard';
 import S3ConfigView from './S3ConfigView';
 import EditEnvModal from './modals/EditEnvModal';
@@ -11,6 +11,7 @@ export default function EnvDetailView({ envId }) {
   const { environments, setEnvironments, setActiveView, addLog } = useApp();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const env = environments.find(e => e.id === envId);
+  const [customVariables, setCustomVariables] = useState(env?.customVariables || []);
   if (!env) return <div>Environment not found</div>;
 
   const handleDelete = async () => {
@@ -22,6 +23,17 @@ export default function EnvDetailView({ envId }) {
       message.success('Environment deleted');
     } catch (err) {
       addLog('FAILED', 'Delete Env', err.message);
+      message.error(err.message);
+    }
+  };
+
+  const handleSaveCustomVariables = async (newVars) => {
+    try {
+      setCustomVariables(newVars);
+      await updateEnvironment(env.id, { ...env, customVariables: newVars });
+      const updated = await getEnvironments();
+      setEnvironments(updated);
+    } catch (err) {
       message.error(err.message);
     }
   };
@@ -64,6 +76,59 @@ export default function EnvDetailView({ envId }) {
       </div>
 
       <S3ConfigView s3Config={env.s3Config} />
+
+      <div style={{ marginTop: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+          <div style={{ width: 3, height: 16, background: 'linear-gradient(180deg, #52c41a, #13c2c2)', borderRadius: 2 }} />
+          <span style={{ fontWeight: 600, color: '#1a1a2e', fontSize: 13 }}>Custom Variables</span>
+          <Tag style={{ marginLeft: 4 }}>{customVariables.length}</Tag>
+        </div>
+        {customVariables.length === 0 ? (
+          <div style={{ background: '#f8f9fb', borderRadius: 8, padding: 20, textAlign: 'center' }}>
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No custom variables" />
+            <Button type="dashed" size="small" icon={<PlusOutlined />} style={{ marginTop: 8 }}
+              onClick={() => handleSaveCustomVariables([...customVariables, { key: '', value: '' }])}>
+              Add Variable
+            </Button>
+          </div>
+        ) : (
+          <div>
+            {customVariables.map((cv, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'center' }}>
+                <Input
+                  size="small" placeholder="Key" value={cv.key}
+                  style={{ width: 150, fontFamily: 'monospace' }}
+                  onChange={(e) => {
+                    const newVars = [...customVariables];
+                    newVars[idx] = { ...newVars[idx], key: e.target.value };
+                    setCustomVariables(newVars);
+                  }}
+                  onBlur={() => handleSaveCustomVariables(customVariables)}
+                />
+                <span style={{ color: '#8c939d' }}>=</span>
+                <Input
+                  size="small" placeholder="Value" value={cv.value}
+                  style={{ flex: 1, fontFamily: 'monospace' }}
+                  onChange={(e) => {
+                    const newVars = [...customVariables];
+                    newVars[idx] = { ...newVars[idx], value: e.target.value };
+                    setCustomVariables(newVars);
+                  }}
+                  onBlur={() => handleSaveCustomVariables(customVariables)}
+                />
+                <Button
+                  size="small" type="text" danger icon={<DeleteFilled />}
+                  onClick={() => handleSaveCustomVariables(customVariables.filter((_, i) => i !== idx))}
+                />
+              </div>
+            ))}
+            <Button type="dashed" size="small" icon={<PlusOutlined />}
+              onClick={() => setCustomVariables([...customVariables, { key: '', value: '' }])}>
+              Add Variable
+            </Button>
+          </div>
+        )}
+      </div>
 
       <EditEnvModal env={env} open={editModalOpen} onClose={() => setEditModalOpen(false)} />
     </div>
