@@ -58,10 +58,10 @@ Vite配置了proxy，前端 `/api/*` 请求自动代理到后端 `localhost:3456
 ## 数据模型
 
 ### Environment
-字段: id, name, envId, instanceId, model, cpuArch, form, disk, managementUrl, account, password, sdeName, uploadDir, downloadDir, nodes[{name, internalIp, externalIp, credentials}], s3Config{endpoint, ak, sk}, createdAt
+字段: id, name, envId, instanceId, model, cpuArch, form, disk, managementUrl, account, password, sdeName, uploadDir, downloadDir, nodes[{name, internalIp, externalIp, credentials}], s3Config{endpoint, ak, sk}, customVariables[{key, value}], createdAt
 
 ### QuickCommand
-字段: id, name, template (支持变量 {internalIp} {externalIp} {credentials} {nodeName}), description
+字段: id, name, template (支持变量 {internalIp} {externalIp} {credentials} {nodeName} 及环境自定义变量), description
 
 ## 文本解析格式
 
@@ -92,3 +92,6 @@ S3配置:
 - Xshell通过后端 `child_process` 启动，路径从全局设置读取
 - 界面文本全部为英文
 - 解析器支持无缩进节点行、无密码凭据格式、灵活空白容错
+- 快捷命令变量解析为纯前端逻辑（`resolveCommand` in `utils/format.js`），支持内置节点变量和环境级自定义变量
+- 命令解析入口：环境详情页节点卡片"Command"下拉 + 命令管理页全局环境/节点选择器
+- 环境自定义变量存储在 `customVariables` 字段，通过现有环境CRUD接口保存，环境详情页独立区域管理
